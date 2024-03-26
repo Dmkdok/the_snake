@@ -133,3 +133,6 @@ dmypy.json
 .deployment
 
 .idea
+
+# other
+snake_dev/
