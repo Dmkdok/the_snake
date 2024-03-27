@@ -44,13 +44,14 @@ clock = pygame.time.Clock()
 
 # Тут опишите все классы игры.
 class GameObject:
-    position = ((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))
-    
-    def __init__(self, position, color):
-        self.position = position
-        self.color = color
+       
+    def __init__(self):
+        """Метод инициализирует базовые атрибуты объекта."""
+        self.position = ((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))
+        self.body_color = None
         
     def draw():
+        """Абстрактный метод, который предназначен для переопределения в дочерних классах."""    
         pass
         
 class Apple(GameObject):
@@ -58,10 +59,12 @@ class Apple(GameObject):
     position = None       
 
     def __init__(self):
+        super().__init__()
+        self.position = randomize_position()
+        self.body_color = (255, 0, 0)
     
-    @classmethod
-    def randomize_position(cls):
-        cls.position = (randint(0, 640), randint(0,480))
+    def randomize_position(self):
+        self.position = (randint(0, (GRID_WIDTH - 1) * GRID_SIZE), randint(0, (GRID_HEIGHT - 1) * GRID_SIZE))
         
     # Метод draw класса Apple    
     def draw(self):
@@ -70,13 +73,13 @@ class Apple(GameObject):
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
 class Snake(GameObject):
-    length = 1
-    positions = (320, 240)
-    direction 
-    next_direction = None
-    body_color = (0, 255, 0)
-    
-    def __init__():
+    def __init__(self):
+        super()__init__()
+        self.length = 1
+        self.positions = [self.position]
+        self.direction = RIGHT
+        self.next_direction = None
+        self.body_color = (0, 255, 0)
         
     # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
@@ -85,7 +88,10 @@ class Snake(GameObject):
             self.next_direction = None
 
     def move():
-        get_head_position()
+        head_position = self.get_head_position()
+        dx, dy = self.direction
+        new_head_position = ((head_position + dx) % GRID_WIDTH, (head_position + dy) % GRID_HEIGHT)
+        # Продолжить тут
         
     # Метод draw класса Snake
     def draw(self):
@@ -104,8 +110,10 @@ class Snake(GameObject):
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
             
-    def get_head_position():
-        return pass
+    def get_head_position(self):
+        dx, dy = self.positions[0]
+        position = (dx // GRID_SIZE, dy // GRID_SIZE)
+        return position
     
     def reset():
         
@@ -114,11 +122,11 @@ def main():
     # Тут нужно создать экземпляры классов.
     ...
 
-    # while True:
-    #     clock.tick(SPEED)
+    while True:
+     clock.tick(SPEED)
 
         # Тут опишите основную логику игры.
-        # ...
+         ...
 
 
 if __name__ == '__main__':
