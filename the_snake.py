@@ -64,7 +64,8 @@ class Apple(GameObject):
         self.body_color = (255, 0, 0)
     
     def randomize_position(self):
-        return (randint(0, GRID_WIDTH) * GRID_SIZE, randint(0, GRID_HEIGHT) * GRID_SIZE)
+        self.position = (randint(0, GRID_WIDTH) * GRID_SIZE, randint(0, GRID_HEIGHT) * GRID_SIZE)
+        return self.position
         
     # Метод draw класса Apple    
     def draw(self):
