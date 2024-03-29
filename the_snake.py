@@ -18,19 +18,19 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 
 # Цвет фона - черный:
-BOARD_BACKGROUND_COLOR = (0, 0, 0)
+BOARD_BACKGROUND_COLOR = (26, 26, 28)
 
 # Цвет границы ячейки
 BORDER_COLOR = (93, 216, 228)
 
 # Цвет яблока
-APPLE_COLOR = (255, 0, 0)
+APPLE_COLOR = (255, 59, 48)
 
 # Цвет змейки
-SNAKE_COLOR = (0, 255, 0)
+SNAKE_COLOR = (40, 205, 65)
 
 # Скорость движения змейки:
-SPEED = 20
+SPEED = 15
 
 # Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -44,96 +44,116 @@ clock = pygame.time.Clock()
 
 # Тут опишите все классы игры.
 class GameObject:
-       
+    """Базовый класс для всех игровых объектов."""
+
     def __init__(self):
-        """Метод инициализирует базовые атрибуты объекта."""
+        """Метод инициализирует базовые атрибуты объектов."""
         self.position = ((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))
         self.body_color = None
-        
+
     def draw(self):
-        """Абстрактный метод, который предназначен для переопределения в дочерних классах."""    
+        """
+        Абстрактный метод, который предназначен для переопределения
+        в дочерних классах.
+        """
         pass
-        
+
+
 class Apple(GameObject):
-    body_color = (255, 0, 0)
-      
+    """Класс, представляющий яблоко в игре"""
 
     def __init__(self):
         super().__init__()
         self.position = self.randomize_position()
-        self.body_color = (255, 0, 0)
-    
+        self.body_color = APPLE_COLOR
+
     def randomize_position(self):
-        self.position = (randint(0, GRID_WIDTH) * GRID_SIZE, randint(0, GRID_HEIGHT) * GRID_SIZE)
+        """Метод случайным образом размещает яблоко на игровом поле"""
+        self.position = (
+            randint(0, GRID_WIDTH) * GRID_SIZE,
+            randint(0, GRID_HEIGHT) * GRID_SIZE
+        )
         return self.position
-        
-    # Метод draw класса Apple    
+
+    # Метод draw класса Apple
     def draw(self):
+        """Метод отрисовывает яблоко на игровом поле"""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
+
 class Snake(GameObject):
+    """Класс, представляющий змейку в игре"""
+
     def __init__(self):
         super().__init__()
         self.length = 1
         self.positions = [self.position]
         self.direction = RIGHT
         self.next_direction = None
-        self.body_color = (0, 255, 0)
+        self.body_color = SNAKE_COLOR
         self.last = None
-        
+
     # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
+        """Метод обновления направления после нажатия на кнопку."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
 
     def move(self):
+        """Метод, управляющий движением змейки."""
         head_position = self.get_head_position()
         dx, dy = self.direction
         new_head_x = (head_position[0] + dx * GRID_SIZE) % SCREEN_WIDTH
         new_head_y = (head_position[1] + dy * GRID_SIZE) % SCREEN_HEIGHT
         new_head_position = (new_head_x, new_head_y)
-        
 
-                
         if self.length > 2 and new_head_position in self.positions[2:]:
             self.reset()
-        else: 
+        else:
             self.positions.insert(0, new_head_position)
             if len(self.positions) > self.length:
                 self.positions.pop()
-        
+
     # Метод draw класса Snake
     def draw(self):
+        """Метод отрисовывает змейку на игровом поле."""
         for position in self.positions[:-1]:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-     # Отрисовка головы змейки
+        # Отрисовка головы змейки
         head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, head_rect)
         pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
 
-     # Затирание последнего сегмента
+        # Затирание последнего сегмента
         if self.last:
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
-            
+
     def get_head_position(self):
+        """Метод возвращает позицию головы змейки"""
         return self.positions[0]
-    
+
     def reset(self):
+        """Метод сбрасывает игру в начальное состояние"""
         self.length = 1
         self.positions = [self.position]
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
         self.last = None
         self.next_direction = None
-        
+
+
 # Функция обработки действий пользователя
 def handle_keys(game_object):
+    """
+    Функция обработки нажатий клавиатуры для изменения
+    направления движения змейки.
+    """
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -147,8 +167,10 @@ def handle_keys(game_object):
                 game_object.next_direction = LEFT
             elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
                 game_object.next_direction = RIGHT
-    
+
+
 def main():
+    """Главная функция, которая запускает игровой цикл."""
     # Тут нужно создать экземпляры классов.
     snake = Snake()
     apple = Apple()
@@ -158,16 +180,16 @@ def main():
         handle_keys(snake)
         snake.update_direction()
         snake.move()
-        
+
         # Проверка столкновения с яблоком
         if snake.positions[0] == apple.position:
             snake.length += 1
             apple.randomize_position()
-         
+
         # Проверка столкновения с собой
         if len(set(snake.positions)) != len(snake.positions):
             snake.reset()
-           
+
         screen.fill(BOARD_BACKGROUND_COLOR)
         snake.draw()
         apple.draw()
@@ -176,4 +198,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
