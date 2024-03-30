@@ -21,7 +21,7 @@ RIGHT = (1, 0)
 BOARD_BACKGROUND_COLOR = (26, 26, 28)
 
 # Цвет границы ячейки
-BORDER_COLOR = (93, 216, 228)
+BORDER_COLOR = (15, 16, 18)
 
 # Цвет яблока
 APPLE_COLOR = (255, 59, 48)
@@ -42,7 +42,6 @@ pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
 
 
-# Тут опишите все классы игры.
 class GameObject:
     """Базовый класс для всех игровых объектов."""
 
@@ -51,12 +50,17 @@ class GameObject:
         self.position = ((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))
         self.body_color = None
 
+    def draw_cell(self, rect):
+        """Метод отрисовывает ячейку на игровом поле."""
+        pygame.draw.rect(screen, self.body_color, rect)
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
     def draw(self):
         """
         Абстрактный метод, который предназначен для переопределения
         в дочерних классах.
         """
-        pass
+        raise NotImplementedError
 
 
 class Apple(GameObject):
@@ -67,20 +71,22 @@ class Apple(GameObject):
         self.position = self.randomize_position()
         self.body_color = APPLE_COLOR
 
-    def randomize_position(self):
+    def randomize_position(self, snake_positions=[]):
         """Метод случайным образом размещает яблоко на игровом поле"""
-        self.position = (
-            randint(0, GRID_WIDTH) * GRID_SIZE,
-            randint(0, GRID_HEIGHT) * GRID_SIZE
-        )
+        while True:
+            apple_x = randint(0, GRID_WIDTH) * GRID_SIZE
+            apple_y = randint(0, GRID_HEIGHT) * GRID_SIZE
+            self.position = (apple_x, apple_y)
+            if (self.position not in snake_positions
+                    and 0 <= apple_x <= SCREEN_WIDTH
+                    and 0 <= apple_y <= SCREEN_HEIGHT):
+                break
         return self.position
 
-    # Метод draw класса Apple
     def draw(self):
         """Метод отрисовывает яблоко на игровом поле"""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, rect)
-        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+        self.draw_cell(rect)
 
 
 class Snake(GameObject):
@@ -88,14 +94,13 @@ class Snake(GameObject):
 
     def __init__(self):
         super().__init__()
-        self.length = 1
+        self.reset()
         self.positions = [self.position]
         self.direction = RIGHT
         self.next_direction = None
         self.body_color = SNAKE_COLOR
         self.last = None
 
-    # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
         """Метод обновления направления после нажатия на кнопку."""
         if self.next_direction:
@@ -117,18 +122,15 @@ class Snake(GameObject):
             if len(self.positions) > self.length:
                 self.positions.pop()
 
-    # Метод draw класса Snake
     def draw(self):
         """Метод отрисовывает змейку на игровом поле."""
-        for position in self.positions[:-1]:
+        for position in self.positions[1:-1]:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
-            pygame.draw.rect(screen, self.body_color, rect)
-            pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+            self.draw_cell(rect)
 
         # Отрисовка головы змейки
         head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, head_rect)
-        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
+        self.draw_cell(head_rect)
 
         # Затирание последнего сегмента
         if self.last:
@@ -148,7 +150,6 @@ class Snake(GameObject):
         self.next_direction = None
 
 
-# Функция обработки действий пользователя
 def handle_keys(game_object):
     """
     Функция обработки нажатий клавиатуры для изменения
@@ -171,7 +172,6 @@ def handle_keys(game_object):
 
 def main():
     """Главная функция, которая запускает игровой цикл."""
-    # Тут нужно создать экземпляры классов.
     snake = Snake()
     apple = Apple()
 
@@ -184,7 +184,7 @@ def main():
         # Проверка столкновения с яблоком
         if snake.positions[0] == apple.position:
             snake.length += 1
-            apple.randomize_position()
+            apple.randomize_position(snake.positions)
 
         # Проверка столкновения с собой
         if len(set(snake.positions)) != len(snake.positions):
